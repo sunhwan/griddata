@@ -1,2 +1,5 @@
 # griddata
-Python package for reading and writing various grid data formats
+
+Python package for reading and writing various grid data formats.
+
+
