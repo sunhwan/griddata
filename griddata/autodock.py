@@ -35,6 +35,13 @@ class AutoDockMap(object):
         shape = [n_points[i]+1 for i in range(3)]
         n_elements = shape[0] * shape[1] * shape[2]
 
+        self.paramfile = ''
+        self.molecule = ''
+        self.datafile = ''
+        self.spacing = spacing
+        self.npts = n_points
+        self.center = center
+
         elements = []
         for _ in range(n_elements):
             elements.append(float(file.readline()))
@@ -43,9 +50,11 @@ class AutoDockMap(object):
         grid.n_elements = n_elements
         grid.spacing = (spacing, spacing, spacing)
         grid.elements = elements
+        grid.shape = shape
 
-        origin = []
-        for i in range(3):
+        ndim = 3
+        origin = [None for _ in range(ndim)]
+        for i in range(ndim):
             origin[i] = center[i] - (float(n_points[i])/2 + 1) * spacing
         grid.origin = origin
         return grid
@@ -53,8 +62,7 @@ class AutoDockMap(object):
     def meta(self):
         return _MAP_HEADER_TMPL.format(**self.__dict__)
 
-    @staticmethod
-    def save(grid, file):
+    def save(self, grid, file):
         """Writes to a file.
 
         Args:
@@ -62,9 +70,6 @@ class AutoDockMap(object):
             file (:obj:`file`): File object.
         """
 
-        file.write(grid.meta())
-        for value in grid.values:
-            if abs(value) < grid.precision:
-                file.write("0.\n")
-            else:
-                file.write("%.3f\n" % value)
+        file.write(self.meta())
+        for value in grid.elements:
+            file.write("%.3f\n" % value)
