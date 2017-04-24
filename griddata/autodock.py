@@ -48,21 +48,16 @@ class AutoDockMap(object):
 
         grid = Grid()
         grid.n_elements = n_elements
+        grid.center = center
+        grid.shape = shape
         grid.spacing = (spacing, spacing, spacing)
         grid.elements = elements
-        grid.shape = shape
-
-        ndim = 3
-        origin = [None for _ in range(ndim)]
-        for i in range(ndim):
-            origin[i] = center[i] - (float(n_points[i])/2 + 1) * spacing
-        grid.origin = origin
         return grid
 
     def meta(self):
         return _MAP_HEADER_TMPL.format(**self.__dict__)
 
-    def save(self, grid, file):
+    def save(self, file):
         """Writes to a file.
 
         Args:
@@ -71,5 +66,11 @@ class AutoDockMap(object):
         """
 
         file.write(self.meta())
+        for value in grid.elements:
+            file.write("%.3f\n" % value)
+
+    @staticmethod
+    def write(grid, file):
+        file.write(grid.meta())
         for value in grid.elements:
             file.write("%.3f\n" % value)

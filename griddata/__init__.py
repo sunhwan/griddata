@@ -14,7 +14,7 @@ def load(file, format):
     if format == 'map':
         reader = AutoDockMap()
         grid = reader.load(file)
-        
+
     return grid
 
 def save(grid, file, format):
@@ -27,7 +27,7 @@ def save(grid, file, format):
     """
 
     if format == 'map':
-        AutoDockMap.write(grid, file)
+        AutoDockMap.save(grid, file)
 
     if format == 'dx':
-        OpenDX.write(grid, file)
+        OpenDX.save(grid, file)

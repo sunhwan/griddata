@@ -32,7 +32,7 @@ class OpenDX(object):
             shape=grid.shape, \
             origin=grid.origin, \
             spacing=grid.spacing, \
-            n_element=grid.n_element \
+            n_elements=grid.n_elements \
         ))
         for i in range(grid.shape[0]):
             col = 0
