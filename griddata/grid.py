@@ -59,6 +59,17 @@ class Grid(object):
     def origin(self, origin):
         self._origin = origin
 
+    def points(self):
+        origin = self.origin
+        shape = self.shape
+        spacing = self.spacing
+        ix, iy, iz = [np.arange(origin[i], origin[i]+shape[i]*spacing[i], spacing[i]) for i in range(self.ndim)]
+        Z = np.meshgrid(ix, iy, iz, indexing='ij')
+        points = np.empty((self.n_elements, self.ndim), dtype=np.float)
+        for i in range(self.ndim):
+            points[:,i] = Z[i].reshape(1, self.n_elements, order='F')
+        return points
+
     def _gridcheck(self, h):
         """Validate grid h is same shape as the current grid"""
         if not isinstance(h, Grid):
