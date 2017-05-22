@@ -29,6 +29,10 @@ class Grid(object):
     def elements(self, elements):
         self._elements = np.array(elements)
 
+    def ndelements(self, order='F'):
+        """Reshape the elements array into ndarray"""
+        return self._elements.reshape(self.shape, order=order)
+
     @property
     def center(self):
         if self._center:
@@ -55,7 +59,8 @@ class Grid(object):
     def origin(self, origin):
         self._origin = origin
 
-    def __sub__(self, h):
+    def _gridcheck(self, h):
+        """Validate grid h is same shape as the current grid"""
         if not isinstance(h, Grid):
             raise TypeError
 
@@ -63,10 +68,44 @@ class Grid(object):
         assert h.spacing == self.spacing
         assert h.shape == self.shape
 
+    def __sub__(self, h):
+        self._gridcheck(h)
+
         grid = Grid()
         grid.n_elements = self.n_elements
         grid.spacing = self.spacing
         grid.elements = self.elements - h.elements
+        grid.shape = self.shape
+        grid.origin = self.origin
+        return grid
+
+    def __add__(self, h):
+        self._gridcheck(h)
+
+        grid = Grid()
+        grid.n_elements = self.n_elements
+        grid.spacing = self.spacing
+        grid.elements = self.elements + h.elements
+        grid.shape = self.shape
+        grid.origin = self.origin
+        return grid
+
+    def __div__(self, h):
+        self._gridcheck(h)
+
+        grid = Grid()
+        grid.n_elements = self.n_elements
+        grid.spacing = self.spacing
+        grid.elements = self.elements / h.elements
+        grid.shape = self.shape
+        grid.origin = self.origin
+        return grid
+
+    def __truediv__(self, n):
+        grid = Grid()
+        grid.n_elements = self.n_elements
+        grid.spacing = self.spacing
+        grid.elements = self.elements / n
         grid.shape = self.shape
         grid.origin = self.origin
         return grid
