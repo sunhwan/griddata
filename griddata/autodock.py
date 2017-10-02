@@ -65,12 +65,17 @@ class AutoDockMap(object):
             file (:obj:`file`): File object.
         """
 
-        file.write(self.meta())
-        for value in grid.elements:
-            file.write("%.3f\n" % value)
-
-    @staticmethod
-    def write(grid, file):
-        file.write(grid.meta())
-        for value in grid.elements:
+        if hasattr(self, 'meta'):
+            file.write(self.meta())
+        else:
+            meta = {
+                'paramfile': '',
+                'datafile': '',
+                'molecule': '',
+                'spacing': self.spacing[0],
+                'npts': (self.shape[0]-1, self.shape[1]-1, self.shape[2]-1),
+                'center': self.center
+            }
+            file.write(_MAP_HEADER_TMPL.format(**meta))
+        for value in self.elements:
             file.write("%.3f\n" % value)
