@@ -102,7 +102,7 @@ class Grid(object):
         origin = self.origin
         shape = self.shape
         spacing = self.spacing
-        ix, iy, iz = [np.arange(origin[i], origin[i]+shape[i]*spacing[i], spacing[i]) for i in range(self.ndim)]
+        ix, iy, iz = [np.array([origin[i]+_*spacing[i] for _ in range(shape[i])]) for i in range(self.ndim)]
         Z = np.meshgrid(ix, iy, iz, indexing='ij')
         points = np.empty((self.n_elements, self.ndim), dtype=np.float)
         for i in range(self.ndim):
