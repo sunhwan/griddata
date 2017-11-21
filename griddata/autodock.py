@@ -1,5 +1,6 @@
 """AutoDock Grid Map read and write"""
 from __future__ import print_function
+import numpy as np
 
 from .grid import Grid
 
@@ -51,7 +52,11 @@ class AutoDockMap(object):
         grid.center = center
         grid.shape = shape
         grid.spacing = (spacing, spacing, spacing)
-        grid.elements = elements
+
+        # autodock grid map is ordered in Fortran
+        # we are keeping the internal as C order.
+        grid.set_elements(elements, order='F')
+
         return grid
 
     def meta(self):
@@ -77,5 +82,7 @@ class AutoDockMap(object):
                 'center': self.center
             }
             file.write(_MAP_HEADER_TMPL.format(**meta))
-        for value in self.elements:
+
+        # bring back to Fortran order
+        for value in self.elements(order='F'):
             file.write("%.3f\n" % value)

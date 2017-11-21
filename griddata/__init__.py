@@ -13,8 +13,11 @@ def load(file, format):
 
     if format == 'map':
         reader = AutoDockMap()
-        grid = reader.load(file)
 
+    if format == 'dx':
+        reader = OpenDX()
+
+    grid = reader.load(file)
     return grid
 
 def save(grid, file, format):
