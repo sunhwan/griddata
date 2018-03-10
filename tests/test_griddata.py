@@ -42,6 +42,11 @@ def test_griddata_sub():
     gg = g - h
     assert all([0 == e for e in gg.elements])
 
+    file = opendx_file()
+    h = griddata.load(file, format='dx')
+    gg = g - h
+    assert sum([abs(d) > abs( h.elements[i] * 0.001 ) for i,d in enumerate(gg.elements)]) == 0
+
 def test_griddata_points():
     file = autodockmap_file()
     grid = griddata.load(file, format='map')
@@ -57,3 +62,15 @@ def test_griddata_points():
 
     vec = np.array([0, 0, grid.spacing[0]])
     np.testing.assert_array_almost_equal(points[grid.shape[0]*grid.shape[1]], origin + vec)
+
+def test_resample():
+    file = autodockmap_file()
+    g = griddata.load(file, format='map')
+    h = g.resample(center=g.center, shape=g.shape)
+    gg = g - h
+    assert all([0 == e for e in gg.elements])
+
+    shape = [_-2 for _ in g.shape]
+    h = g.resample(center=g.center, shape=shape)
+    gg = g.ndelements[1:-1, 1:-1, 1:-1] - h.ndelements
+    assert 0 == np.sum(gg)

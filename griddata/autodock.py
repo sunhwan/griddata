@@ -84,5 +84,5 @@ class AutoDockMap(object):
             file.write(_MAP_HEADER_TMPL.format(**meta))
 
         # bring back to Fortran order
-        for value in self.elements(order='F'):
+        for value in self.get_elements(order='F'):
             file.write("%.3f\n" % value)

@@ -1,7 +1,10 @@
-
-"""Initialize grid format data and allow conversion between formats and resampling of data"""
+"""
+Initialize grid format data and allow conversion between formats and
+resampling of data
+"""
 
 import numpy as np
+from scipy import interpolate
 
 class Grid(object):
     """Grid data class that reads/converts grid-format data. Internally
@@ -14,7 +17,7 @@ class Grid(object):
 
     ndim = None
     n_elements = 0
-    shape = ()
+    _shape = ()
     spacing = ()
     _origin = None
     _center = None
@@ -31,36 +34,36 @@ class Grid(object):
     def get_elements(self, order='C'):
         """Return the elements in 1D array. The array is ordered in C-order."""
         if order not in ('C', 'F'):
-            raise NotImplemented
-        if order == 'F':
-            return np.array(self._elements).reshape(self._shape).reshape(self.n_elements, order='F')
-        return self._elements
+            raise NotImplementedError
+
+        n_elements = self.n_elements
+        return self._elements.reshape(self.shape).ravel(order=order)
 
     @elements.setter
     def elements(self, elements):
+        assert len(elements) == self.n_elements
         self.set_elements(elements)
 
     def set_elements(self, elements, order='C'):
         if order not in ('C', 'F'):
-            raise NotImplemented
-        if order == 'F':
-            n_elements = len(elements)
-            shape = self.shape
-            self._elements = np.array(elements).reshape(shape, order='F').reshape(n_elements)
-        else:
-            self._elements = np.array(elements)
+            raise NotImplementedError
+        n_elements = len(elements)
+        self._elements = np.array(elements).reshape(self.shape, order=order).ravel()
 
+    @property
     def ndelements(self, order='C'):
         """Reshape the elements array into ndarray"""
         if order not in ('C', 'F'):
-            raise NotImplemented
-        return self._elements.reshape(self.shape, order=order)
+            raise NotImplementedError
+        ndelements = self._elements.reshape(self.shape)
+        if order == 'C':
+            return ndelements
+        return ndelements.ravel(order=order).reshape(self.shape, order=order)
 
     @property
     def center(self):
         if self._center:
             return self._center
-
         try:
             ndim = self.ndim
             center = [None for _ in range(self.ndim)]
@@ -80,7 +83,6 @@ class Grid(object):
     def origin(self):
         if self._origin:
             return self._origin
-
         try:
             ndim = self.ndim
             _origin = [None for _ in range(self.ndim)]
@@ -96,9 +98,19 @@ class Grid(object):
         self._origin = origin
         self.ndim = len(origin)
 
+    @property
+    def shape(self):
+        return self._shape
+
+    @shape.setter
+    def shape(self, shape):
+        self._shape = shape
+        self.ndim = len(shape)
+        self.n_elements = np.cumprod(shape)[-1]
+
     def points(self, order='C'):
         if order not in ('C', 'F'):
-            raise NotImplemented
+            raise NotImplementedError
         origin = self.origin
         shape = self.shape
         spacing = self.spacing
@@ -109,41 +121,61 @@ class Grid(object):
             points[:,i] = Z[i].reshape(1, self.n_elements, order=order)
         return points
 
+    def resample(self, shape, center, spacing=None, bounds_error=False, fill_value=0):
+        if not spacing:
+            spacing = self.spacing
+
+        grid = Grid()
+        grid.n_elements = np.cumprod(shape)[-1]
+        grid.spacing = spacing
+        grid.shape = shape
+        grid.center = center
+        points = [np.arange(self.origin[i], self.origin[i]+self.spacing[i]*self.shape[i], self.spacing[i]) for i in range(self.ndim)]
+        g = interpolate.RegularGridInterpolator(points, self.ndelements, bounds_error=bounds_error, fill_value=fill_value)
+
+        origin = grid.origin
+        points = [np.arange(origin[i], origin[i]+shape[i]*spacing[i], spacing[i]) for i in range(self.ndim)]
+        ndpoints = np.meshgrid(*points, indexing='ij')
+        points = np.array([ndpoints[i].reshape(grid.n_elements) for i in range(self.ndim)]).T
+        grid.elements = g(points)
+        return grid
+
     def _gridcheck(self, h):
         """Validate grid h is same shape as the current grid"""
         if not isinstance(h, Grid):
             raise TypeError
-
         assert h.n_elements == self.n_elements
         assert h.spacing == self.spacing
         assert h.shape == self.shape
 
-    def __sub__(self, h):
-        self._gridcheck(h)
+    def copy(self):
         grid = Grid()
         grid.n_elements = self.n_elements
         grid.spacing = self.spacing
-        grid.elements = self.elements - h.elements
         grid.shape = self.shape
         grid.origin = self.origin
+        return grid
+
+    def log(self):
+        self.elements = np.log(self.elements)
+
+    def exp(self):
+        self.elements = np.exp(self.elements)
+
+    def __sub__(self, h):
+        self._gridcheck(h)
+        grid = self.copy()
+        grid.elements = self.elements - h.elements
         return grid
 
     def __add__(self, h):
         self._gridcheck(h)
-        grid = Grid()
-        grid.n_elements = self.n_elements
-        grid.spacing = self.spacing
+        grid = self.copy()
         grid.elements = self.elements + h.elements
-        grid.shape = self.shape
-        grid.origin = self.origin
         return grid
 
-    def __truediv__(self, n):
-        self._gridcheck(h)
-        grid = Grid()
-        grid.n_elements = self.n_elements
-        grid.spacing = self.spacing
-        grid.elements = self.elements / n
-        grid.shape = self.shape
-        grid.origin = self.origin
-        return grid
+    def __mul__(self, factor):
+        self.elements = self.elements * factor
+
+    def __truediv__(self, factor):
+        self.elements = self.elements / factor
