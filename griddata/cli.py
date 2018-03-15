@@ -12,7 +12,7 @@ def subtract(args):
     except:
         if args.resample:
             if args.exponent:
-                target = (-target / args.factor).exp()
+                target = (target / -args.factor).exp()
                 target = target.resample(center=ref.center, shape=ref.shape)
                 target = -args.factor * target.log()
             else:

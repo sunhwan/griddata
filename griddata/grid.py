@@ -157,10 +157,13 @@ class Grid(object):
         return grid
 
     def log(self):
-        self.elements = np.log(self.elements)
+        idx = ~(self.elements == 0)
+        self.elements[idx] = np.log(self.elements[idx])
+        return self
 
     def exp(self):
         self.elements = np.exp(self.elements)
+        return self
 
     def __sub__(self, h):
         self._gridcheck(h)
@@ -176,6 +179,11 @@ class Grid(object):
 
     def __mul__(self, factor):
         self.elements = self.elements * factor
+        return self
+
+    __rmul__ = __mul__
 
     def __truediv__(self, factor):
         self.elements = self.elements / factor
+        return self
+
