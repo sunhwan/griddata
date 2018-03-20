@@ -3,6 +3,7 @@ Initialize grid format data and allow conversion between formats and
 resampling of data
 """
 
+from __future__ import division
 import numpy as np
 from scipy import interpolate
 
@@ -68,7 +69,7 @@ class Grid(object):
             ndim = self.ndim
             center = [None for _ in range(self.ndim)]
             for i in range(self.ndim):
-                center[i] = self._origin[i] - int(float(self.shape[i])/2) * self.spacing[i]
+                center[i] = self._origin[i] + int(float(self.shape[i])/2) * self.spacing[i]
             self._center = center
             return self._center
         except:

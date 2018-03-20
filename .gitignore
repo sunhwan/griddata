@@ -1,3 +1,4 @@
 /docs/_build
 .cache
 __pycache__
+*.pyc
