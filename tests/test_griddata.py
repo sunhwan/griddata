@@ -74,3 +74,16 @@ def test_resample():
     h = g.resample(center=g.center, shape=shape)
     gg = g.ndelements[1:-1, 1:-1, 1:-1] - h.ndelements
     assert 0 == np.sum(gg)
+
+def test_gaussian_filter():
+    file = autodockmap_file()
+    g = griddata.load(file, format='map')
+    h = g.gaussian_filter(sigma=0)
+    gg = g - h
+    assert all([0 == e for e in gg.elements])
+
+    h = g.gaussian_filter(sigma=0.1)
+    gg = g - h
+    elements = [gg.elements[i]/e*100 for i,e in enumerate(g.elements) if e > 0]
+    # catching changes bigger than 1%
+    assert all([1.0 > np.abs(e) for e in elements])

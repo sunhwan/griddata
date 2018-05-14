@@ -141,6 +141,17 @@ class Grid(object):
         grid.elements = g(points)
         return grid
 
+    def gaussian_filter(self, sigma=1.):
+        from scipy import ndimage
+        grid = Grid()
+        grid.n_elements = np.cumprod(self.shape)[-1]
+        grid.spacing = self.spacing
+        grid.shape = self.shape
+        grid.center = self.center
+        ndelements = ndimage.gaussian_filter(self.ndelements, sigma=sigma)
+        grid.elements = ndelements.flatten()
+        return grid
+
     def _gridcheck(self, h):
         """Validate grid h is same shape as the current grid"""
         if not isinstance(h, Grid):
