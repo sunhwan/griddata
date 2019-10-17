@@ -43,12 +43,8 @@ class Grid(object):
 
     @elements.setter
     def elements(self, elements):
-<<<<<<< HEAD
-        assert len(elements) == self.n_elements, '%d != %d' % (len(elements), self.n_elements)
-=======
         if self.n_elements is not None:
             assert len(elements) == self.n_elements, f'{len(elements)} != {len(self.n_elements)}'
->>>>>>> c0fcf569fca1943180ef46d756a6269fe818dd98
         self.set_elements(elements)
 
     def set_elements(self, elements, order='C'):
