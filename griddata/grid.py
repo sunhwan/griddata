@@ -6,6 +6,7 @@ resampling of data
 from __future__ import division
 import numpy as np
 from scipy import interpolate
+from scipy import ndimage
 
 class Grid(object):
     """Grid data class that reads/converts grid-format data. Internally
@@ -42,7 +43,7 @@ class Grid(object):
 
     @elements.setter
     def elements(self, elements):
-        assert len(elements) == self.n_elements
+        assert len(elements) == self.n_elements, '%d != %d' % (len(elements), self.n_elements)
         self.set_elements(elements)
 
     def set_elements(self, elements, order='C'):
@@ -63,7 +64,7 @@ class Grid(object):
 
     @property
     def center(self):
-        if self._center:
+        if self._center is not None:
             return self._center
         try:
             ndim = self.ndim
@@ -122,6 +123,41 @@ class Grid(object):
             points[:,i] = Z[i].reshape(1, self.n_elements, order=order)
         return points
 
+    def reorient(self, shape, center, u, spacing=None, bounds_error=False, fill_value=0):
+        if not spacing:
+            spacing = self.spacing
+
+        grid = Grid()
+        grid.n_elements = np.cumprod(shape)[-1]
+        grid.spacing = spacing
+        grid.shape = shape
+        grid.center = center
+
+        # prepare for large array for storing the rotated map
+        big_shape = np.max([self.shape, shape], axis=0)
+        ndelements = np.zeros(big_shape)
+        offset = [int((big_shape[0] - self.shape[0]) / 2.0),
+                  int((big_shape[1] - self.shape[1]) / 2.0),
+                  int((big_shape[2] - self.shape[2]) / 2.0)]
+        ndelements[offset[0]:offset[0] + self.shape[0],
+                   offset[1]:offset[1] + self.shape[1],
+                   offset[2]:offset[2] + self.shape[2]] = self.ndelements
+
+        # good introduction on affine transform
+        # https://stackoverflow.com/a/20161742/532799
+        c_in = 0.5 * np.array(ndelements.shape)
+        c_out = 0.5 * np.array(ndelements.shape)
+        offset = c_in - c_out.dot(u['rot'])
+
+        new = ndimage.affine_transform(ndelements, u['rot'].T, offset=offset, order=3)
+        offset = [int((big_shape[0] - shape[0]) / 2.0),
+                  int((big_shape[1] - shape[1]) / 2.0),
+                  int((big_shape[2] - shape[2]) / 2.0)]
+        grid.elements = new[offset[0]:offset[0] + shape[0],
+                            offset[1]:offset[1] + shape[1],
+                            offset[2]:offset[2] + shape[2]].flatten()
+        return grid
+
     def resample(self, shape, center, spacing=None, bounds_error=False, fill_value=0):
         if not spacing:
             spacing = self.spacing
@@ -142,7 +178,6 @@ class Grid(object):
         return grid
 
     def gaussian_filter(self, sigma=1.):
-        from scipy import ndimage
         grid = Grid()
         grid.n_elements = np.cumprod(self.shape)[-1]
         grid.spacing = self.spacing

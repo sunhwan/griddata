@@ -2,6 +2,7 @@
 
 from .autodock import AutoDockMap
 from .opendx import OpenDX
+from .grid import Grid
 
 def load(file, format):
     """Load grid-format data
