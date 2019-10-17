@@ -81,8 +81,8 @@ class OpenDX(object):
             spacing=grid.spacing, \
             n_elements=grid.n_elements \
         ))
+        col = 0
         for i in range(grid.shape[0]):
-            col = 0
             for j in range(grid.shape[1]):
                 for k in range(grid.shape[2]):
                     idx = k*grid.shape[0]*grid.shape[1] + j*grid.shape[0] + i
