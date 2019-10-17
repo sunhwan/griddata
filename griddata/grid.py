@@ -134,8 +134,8 @@ class Grid(object):
         grid.shape = shape
         grid.center = center
 
-        # prepare for large array for storing the rotated map
-        big_shape = np.max([self.shape, shape], axis=0)
+        # prepare for large array for storing the rotated map and prevent cropping upon rotation
+        big_shape = np.ones(self.ndim) * np.max([self.shape, shape])
         ndelements = np.zeros(big_shape)
         offset = [int((big_shape[0] - self.shape[0]) / 2.0),
                   int((big_shape[1] - self.shape[1]) / 2.0),
