@@ -4,6 +4,10 @@ from .autodock import AutoDockMap
 from .opendx import OpenDX
 from .grid import Grid
 
+__version__ = "0.1.0"
+__author__ = "Sunhwan Jo"
+
+
 def load(file, format):
     """Load grid-format data
 
